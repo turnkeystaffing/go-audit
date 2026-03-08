@@ -1,0 +1,26 @@
+# Binaries
+/bin
+*.test
+*.out
+
+*.env*
+
+# IDEs
+.idea
+.vscode/
+
+# Go vendor
+/vendor
+
+# Test coverage
+coverage*.out
+/*.html
+
+# Logs
+*.log
+
+# OS-specific
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
