@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/turnkeystaffing/go-authclient"
 	"github.com/turnkeystaffing/go-opentelemetry"
 )
 
@@ -148,7 +149,7 @@ type HTTPWriter struct {
 	batchURL       string // pre-computed: baseURL + "/api/v1/events/batch"
 	healthURL      string // pre-computed: baseURL + "/health/liveness"
 	serviceName    string
-	tokenProvider  TokenProvider
+	tokenProvider  authclient.TokenProvider
 	maxRetries     int
 	retryBaseDelay time.Duration
 	log            *slog.Logger
@@ -165,7 +166,7 @@ const (
 )
 
 // NewHTTPWriter creates a new HTTP-based audit writer.
-func NewHTTPWriter(cfg HTTPWriterConfig, tokenProvider TokenProvider, log *slog.Logger) (*HTTPWriter, error) {
+func NewHTTPWriter(cfg HTTPWriterConfig, tokenProvider authclient.TokenProvider, log *slog.Logger) (*HTTPWriter, error) {
 	if log == nil {
 		panic("audit: logger is required")
 	}

@@ -82,7 +82,7 @@ func (p *rotatingTokenProvider) Token(_ context.Context) (string, error) {
 
 func TestNewHTTPWriter_NilLogger_Panics(t *testing.T) {
 	assert.PanicsWithValue(t, "audit: logger is required", func() {
-		_, _ = NewHTTPWriter(HTTPWriterConfig{}, NewStaticTokenProvider("tok"), nil)
+		_, _ = NewHTTPWriter(HTTPWriterConfig{}, NewMockTokenProvider("tok"), nil)
 	})
 }
 
@@ -94,7 +94,7 @@ func TestNewHTTPWriter_NilTokenProvider_Panics(t *testing.T) {
 
 func TestNewHTTPWriter_EmptyBaseURL_Error(t *testing.T) {
 	cfg := HTTPWriterConfig{ServiceName: "svc"}
-	writer, err := NewHTTPWriter(cfg, NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(cfg, NewMockTokenProvider("tok"), testLogger())
 	assert.Error(t, err)
 	assert.Nil(t, writer)
 	assert.Contains(t, err.Error(), "base URL is required")
@@ -102,7 +102,7 @@ func TestNewHTTPWriter_EmptyBaseURL_Error(t *testing.T) {
 
 func TestNewHTTPWriter_InvalidURL_Error(t *testing.T) {
 	cfg := HTTPWriterConfig{BaseURL: "ftp://not-http.com", ServiceName: "svc"}
-	writer, err := NewHTTPWriter(cfg, NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(cfg, NewMockTokenProvider("tok"), testLogger())
 	assert.Error(t, err)
 	assert.Nil(t, writer)
 	assert.Contains(t, err.Error(), "scheme must be http or https")
@@ -115,7 +115,7 @@ func TestNewHTTPWriter_ValidConfig_Success(t *testing.T) {
 	defer srv.Close()
 
 	cfg := testHTTPWriterConfig(srv.URL)
-	writer, err := NewHTTPWriter(cfg, NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(cfg, NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 	assert.NotNil(t, writer)
 	assert.Equal(t, "http", writer.Name())
@@ -142,7 +142,7 @@ func TestHTTPWriter_WriteBatch_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("test-token"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("test-token"), testLogger())
 	require.NoError(t, err)
 
 	events := []FinalAuditEvent{testFinalAuditEvent(t), testFinalAuditEvent(t)}
@@ -160,7 +160,7 @@ func TestHTTPWriter_WriteBatch_PartialRejection_StillNil(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t), testFinalAuditEvent(t)})
@@ -180,7 +180,7 @@ func TestHTTPWriter_WriteBatch_ServerError_RetrySuccess(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t)})
@@ -198,7 +198,7 @@ func TestHTTPWriter_WriteBatch_ServerError_RetryExhausted(t *testing.T) {
 
 	cfg := testHTTPWriterConfig(srv.URL)
 	cfg.MaxRetries = 2
-	writer, err := NewHTTPWriter(cfg, NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(cfg, NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t)})
@@ -221,7 +221,7 @@ func TestHTTPWriter_WriteBatch_RateLimited_429(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t)})
@@ -237,7 +237,7 @@ func TestHTTPWriter_WriteBatch_ClientError_NoRetry(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t)})
@@ -254,7 +254,7 @@ func TestHTTPWriter_WriteBatch_Unauthorized_401(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t)})
@@ -272,7 +272,7 @@ func TestHTTPWriter_WriteBatch_NetworkError(t *testing.T) {
 		MaxRetries:     1,
 		RetryBaseDelay: 1 * time.Millisecond,
 	}
-	writer, err := NewHTTPWriter(cfg, NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(cfg, NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t)})
@@ -307,7 +307,7 @@ func TestHTTPWriter_WriteBatch_EmptyBatch(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{})
@@ -323,7 +323,7 @@ func TestHTTPWriter_WriteBatch_ContextCancellation(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -343,7 +343,7 @@ func TestHTTPWriter_WriteBatch_WireFormat(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	event := testFinalAuditEvent(t)
@@ -377,7 +377,7 @@ func TestHTTPWriter_WriteBatch_BearerToken(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider(expectedToken), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider(expectedToken), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t)})
@@ -395,7 +395,7 @@ func TestHTTPWriter_WriteBatch_NilUserID(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	event := testFinalAuditEvent(t)
@@ -424,7 +424,7 @@ func TestHTTPWriter_Health_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.Health(context.Background())
@@ -441,7 +441,7 @@ func TestHTTPWriter_Health_Failure(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.Health(context.Background())
@@ -461,7 +461,7 @@ func TestHTTPWriter_Health_Cache(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	// First call — hits server
@@ -488,7 +488,7 @@ func TestHTTPWriter_Health_CacheInvalidation(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	// Prime health cache
@@ -514,7 +514,7 @@ func TestHTTPWriter_Shutdown(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.Shutdown(context.Background())
@@ -531,7 +531,7 @@ func TestHTTPWriter_Name(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	assert.Equal(t, "http", writer.Name())
@@ -548,7 +548,7 @@ func TestHTTPWriter_ConcurrentWriteBatchAndHealth(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	const goroutines = 10
@@ -576,7 +576,7 @@ func TestHTTPWriter_WriteBatch_WireFormat_FailureReason(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	event := testFinalAuditEvent(t)
@@ -609,7 +609,7 @@ func TestHTTPWriter_WriteBatch_RetryAfterHonored(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	start := time.Now()
@@ -634,7 +634,7 @@ func TestHTTPWriter_BackoffDelay_ExponentialWithCap(t *testing.T) {
 		Timeout:        5 * time.Second,
 		MaxRetries:     0,
 		RetryBaseDelay: 100 * time.Millisecond,
-	}, NewStaticTokenProvider("tok"), testLogger())
+	}, NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	// Exponential progression: 100ms -> 200ms -> 400ms -> 800ms -> 1600ms -> 3200ms -> 5000ms (cap)
@@ -660,7 +660,7 @@ func TestHTTPWriter_RetryDelay_RetryAfterCapped(t *testing.T) {
 		Timeout:        5 * time.Second,
 		MaxRetries:     0,
 		RetryBaseDelay: 100 * time.Millisecond,
-	}, NewStaticTokenProvider("tok"), testLogger())
+	}, NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	// Retry-After within cap → honored
@@ -696,7 +696,7 @@ func TestHTTPWriter_WriteBatch_ContextCancelDuringRetry(t *testing.T) {
 	cfg := testHTTPWriterConfig(srv.URL)
 	cfg.MaxRetries = 3
 	cfg.RetryBaseDelay = 5 * time.Second // long delay so context cancel fires during wait
-	writer, err := NewHTTPWriter(cfg, NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(cfg, NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
@@ -721,7 +721,7 @@ func TestHTTPWriter_WriteBatch_429_NoRetryAfterHeader(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t)})
@@ -743,7 +743,7 @@ func TestHTTPWriter_WriteBatch_429_NonNumericRetryAfter(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{testFinalAuditEvent(t)})
@@ -760,7 +760,7 @@ func TestHTTPWriter_WriteBatch_NilContextData(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	event := testFinalAuditEvent(t)
@@ -786,7 +786,7 @@ func TestHTTPWriter_Health_CachedError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewStaticTokenProvider("tok"), testLogger())
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
 	require.NoError(t, err)
 
 	// First call — unhealthy

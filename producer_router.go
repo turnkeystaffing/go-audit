@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/turnkeystaffing/go-authclient"
 	pkgredis "github.com/turnkeystaffing/go-redis"
 )
 
@@ -11,13 +12,13 @@ import (
 // When RedisClient is provided: three-tier chain HTTPWriter → RedisQueueWriter → FileWriter.
 // When RedisClient is nil: two-tier chain HTTPWriter → FileWriter (Redis skipped entirely).
 type ProducerRouterConfig struct {
-	HTTP          HTTPWriterConfig       // HTTPWriter configuration (BaseURL, ServiceName, etc.)
-	TokenProvider TokenProvider          // OAuth token provider for HTTPWriter authentication
-	RedisClient   pkgredis.RedisClient   // Redis client for RedisQueueWriter (nil = skip Redis tier)
-	RedisQueue    RedisQueueWriterConfig // RedisQueueWriter configuration (optional, defaults applied)
-	FileDir       string                 // FileWriter output directory (required)
-	FileReplay    FileReplayConfig       // FileReplayer configuration (optional, defaults from FileDir)
-	RouterConfig  *AuditConfig           // Pipeline config override (optional, defaults applied)
+	HTTP          HTTPWriterConfig         // HTTPWriter configuration (BaseURL, ServiceName, etc.)
+	TokenProvider authclient.TokenProvider // OAuth token provider for HTTPWriter authentication
+	RedisClient   pkgredis.RedisClient     // Redis client for RedisQueueWriter (nil = skip Redis tier)
+	RedisQueue    RedisQueueWriterConfig   // RedisQueueWriter configuration (optional, defaults applied)
+	FileDir       string                   // FileWriter output directory (required)
+	FileReplay    FileReplayConfig         // FileReplayer configuration (optional, defaults from FileDir)
+	RouterConfig  *AuditConfig             // Pipeline config override (optional, defaults applied)
 }
 
 // ProducerRouter holds the components created by NewProducerRouter.

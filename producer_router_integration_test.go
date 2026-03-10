@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	pkgredis "github.com/turnkeystaffing/go-redis"
 )
 
@@ -30,7 +29,7 @@ func testIntegrationProducerConfig(t *testing.T, httpBaseURL string, redisClient
 			MaxRetries:     0, // No retries for fast test failure
 			RetryBaseDelay: 100 * time.Millisecond,
 		},
-		TokenProvider: NewStaticTokenProvider("test-token"),
+		TokenProvider: NewMockTokenProvider("test-token"),
 		RedisClient:   redisClient,
 		FileDir:       fileDir,
 		RouterConfig: &AuditConfig{
@@ -93,7 +92,7 @@ func TestIntegration_ProducerRouter_ChainDispatch_HTTPAndRedisDown(t *testing.T)
 			MaxRetries:     0,
 			RetryBaseDelay: 10 * time.Millisecond,
 		},
-		TokenProvider: NewStaticTokenProvider("test-token"),
+		TokenProvider: NewMockTokenProvider("test-token"),
 		RedisClient:   mockRedis,
 		FileDir:       fileDir,
 		RouterConfig: &AuditConfig{

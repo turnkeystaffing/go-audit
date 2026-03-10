@@ -100,7 +100,7 @@ func newTestHTTPWriter(t *testing.T, serverURL string) *HTTPWriter {
 		MaxRetries:     0,
 		RetryBaseDelay: 1 * time.Millisecond,
 	}
-	w, err := NewHTTPWriter(cfg, NewStaticTokenProvider("test-token"), replayTestLogger())
+	w, err := NewHTTPWriter(cfg, NewMockTokenProvider("test-token"), replayTestLogger())
 	require.NoError(t, err)
 	return w
 }

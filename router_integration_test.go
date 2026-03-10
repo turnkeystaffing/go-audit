@@ -13,7 +13,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	pkgredis "github.com/turnkeystaffing/go-redis"
 )
 
@@ -30,7 +29,7 @@ func TestLog_CriticalEvent_Integration_RejectionTiming(t *testing.T) {
 	httpCfg := DefaultHTTPWriterConfig()
 	httpCfg.BaseURL = "http://localhost:19999"
 	httpCfg.ServiceName = "test-service"
-	httpWriter, err := NewHTTPWriter(httpCfg, NewStaticTokenProvider("test-token"), log)
+	httpWriter, err := NewHTTPWriter(httpCfg, NewMockTokenProvider("test-token"), log)
 	require.NoError(t, err)
 
 	// RedisQueueWriter → deliberately unreachable Redis (NOT sharedRedisAddr per G18)

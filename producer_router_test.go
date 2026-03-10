@@ -12,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	pkgredis "github.com/turnkeystaffing/go-redis"
 )
 
@@ -24,7 +23,7 @@ func testProducerRouterConfig(t *testing.T) ProducerRouterConfig {
 			BaseURL:     "http://localhost:9090",
 			ServiceName: "test-service",
 		},
-		TokenProvider: NewStaticTokenProvider("test-token"),
+		TokenProvider: NewMockTokenProvider("test-token"),
 		RedisClient:   pkgredis.NewMockRedisClient(),
 		FileDir:       fileDir,
 	}

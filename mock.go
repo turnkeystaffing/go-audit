@@ -8,6 +8,19 @@ import (
 	"time"
 )
 
+// MockTokenProvider is a test-only TokenProvider that returns a fixed token.
+type MockTokenProvider struct {
+	token string
+}
+
+func NewMockTokenProvider(token string) *MockTokenProvider {
+	return &MockTokenProvider{token: token}
+}
+
+func (p *MockTokenProvider) Token(_ context.Context) (string, error) {
+	return p.token, nil
+}
+
 // MockWriter is a test-only mock implementation of AuditWriter for router tests.
 type MockWriter struct {
 	name            string

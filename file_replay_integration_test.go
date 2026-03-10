@@ -87,7 +87,7 @@ func newIntegrationHTTPWriter(t *testing.T, serverURL string) *HTTPWriter {
 		RetryBaseDelay: 1 * time.Millisecond,
 	}
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	w, err := NewHTTPWriter(cfg, NewStaticTokenProvider("test-token"), log)
+	w, err := NewHTTPWriter(cfg, NewMockTokenProvider("test-token"), log)
 	require.NoError(t, err)
 	return w
 }
