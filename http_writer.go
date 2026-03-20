@@ -103,9 +103,19 @@ type httpResourceDTO struct {
 // httpIngestionResponse is the wire format for the batch endpoint response.
 // Matches internal/audit/gateway/dto/ingestion.go:IngestionResponse.
 type httpIngestionResponse struct {
-	Accepted int      `json:"accepted"`
-	Rejected int      `json:"rejected"`
-	EventIDs []string `json:"event_ids"`
+	Accepted int                  `json:"accepted"`
+	Rejected int                  `json:"rejected"`
+	EventIDs []string             `json:"event_ids"`
+	Errors   []httpIngestionError `json:"errors"`
+}
+
+// httpIngestionError describes a per-event rejection from the audit service.
+// Matches internal/audit/gateway/dto/ingestion.go:IngestionError.
+type httpIngestionError struct {
+	Index     int    `json:"index"`
+	EventID   string `json:"event_id,omitempty"`
+	Reason    string `json:"reason"`
+	Retryable bool   `json:"retryable"`
 }
 
 // finalEventToDTO converts a FinalAuditEvent to the audit service wire format.
@@ -296,10 +306,20 @@ func (w *HTTPWriter) doRequest(ctx context.Context, body []byte, token string, e
 		// Parse response to check for rejections
 		var ingestionResp httpIngestionResponse
 		if err := json.Unmarshal(respBody, &ingestionResp); err == nil && ingestionResp.Rejected > 0 {
-			w.log.Warn("http writer: audit service rejected some events",
+			attrs := []any{
 				"accepted", ingestionResp.Accepted,
 				"rejected", ingestionResp.Rejected,
-				"total_sent", eventCount)
+				"total_sent", eventCount,
+			}
+			for i, e := range ingestionResp.Errors {
+				prefix := fmt.Sprintf("errors.%d.", i)
+				attrs = append(attrs, prefix+"reason", e.Reason)
+				if e.EventID != "" {
+					attrs = append(attrs, prefix+"event_id", e.EventID)
+				}
+				attrs = append(attrs, prefix+"retryable", e.Retryable)
+			}
+			w.log.Warn("http writer: audit service rejected some events", attrs...)
 		}
 		return nil
 	}
