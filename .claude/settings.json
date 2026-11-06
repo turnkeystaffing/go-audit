@@ -1,0 +1,8 @@
+{
+  "extraKnownMarketplaces": {
+    "native-claude-marketplace": {
+      "source": { "source": "git", "url": "git@bitbucket.org:get-native/native-claude-marketplace.git" }
+    }
+  },
+  "enabledPlugins": { "dh@native-claude-marketplace": true }
+}

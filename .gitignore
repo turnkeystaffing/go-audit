@@ -24,3 +24,8 @@ coverage*.out
 Thumbs.db
 *.tmp
 *.swp
+
+# Personal / agent files (dh kit)
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/worktrees/

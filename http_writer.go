@@ -91,6 +91,8 @@ type httpEventDTO struct {
 	Timestamp     string                 `json:"timestamp"`
 	Metadata      map[string]interface{} `json:"metadata,omitempty"`
 	FailureReason string                 `json:"failure_reason,omitempty"`
+	IPAddress     string                 `json:"ip_address,omitempty"`
+	UserAgent     string                 `json:"user_agent,omitempty"`
 }
 
 // httpResourceDTO is the wire format for a resource reference.
@@ -127,9 +129,16 @@ func finalEventToDTO(event FinalAuditEvent, serviceName string) httpEventDTO {
 		Outcome:       event.Outcome,
 		Timestamp:     event.Timestamp.Format(time.RFC3339Nano),
 		FailureReason: event.FailureReason,
+		UserAgent:     event.UserAgent,
 		Resource: httpResourceDTO{
 			Type: event.ResourceType,
 		},
+	}
+
+	// The end user's IP and user agent, as seen by the producing service.
+	// The audit service keeps these instead of the producer's own connection.
+	if event.IPAddress != nil {
+		dto.IPAddress = *event.IPAddress
 	}
 
 	if event.UserID != nil {
