@@ -912,3 +912,61 @@ func TestHTTPWriter_WriteBatch_TokenRefreshedBetweenRetries(t *testing.T) {
 	assert.Equal(t, "Bearer token-v1", receivedTokens[0]) // first attempt
 	assert.Equal(t, "Bearer token-v2", receivedTokens[1]) // retry with refreshed token
 }
+
+func TestHTTPWriter_WriteBatch_WireFormat_IPAddressAndUserAgent(t *testing.T) {
+	var receivedBody []byte
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedBody, _ = io.ReadAll(r.Body)
+		w.WriteHeader(http.StatusAccepted)
+		json.NewEncoder(w).Encode(map[string]interface{}{"accepted": 1, "rejected": 0, "event_ids": []string{"a"}, "errors": []interface{}{}})
+	}))
+	defer srv.Close()
+
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
+	require.NoError(t, err)
+
+	ip := "203.0.113.7"
+	event := testFinalAuditEvent(t)
+	event.IPAddress = &ip
+	event.UserAgent = "Mozilla/5.0 (end-user browser)"
+
+	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{event})
+	require.NoError(t, err)
+
+	var req httpBatchRequest
+	require.NoError(t, json.Unmarshal(receivedBody, &req))
+	require.Len(t, req.Events, 1)
+
+	dto := req.Events[0]
+	assert.Equal(t, "203.0.113.7", dto.IPAddress)
+	assert.Equal(t, "Mozilla/5.0 (end-user browser)", dto.UserAgent)
+}
+
+func TestHTTPWriter_WriteBatch_WireFormat_IPAddressAndUserAgentOmittedWhenEmpty(t *testing.T) {
+	var receivedBody []byte
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedBody, _ = io.ReadAll(r.Body)
+		w.WriteHeader(http.StatusAccepted)
+		json.NewEncoder(w).Encode(map[string]interface{}{"accepted": 1, "rejected": 0, "event_ids": []string{"a"}, "errors": []interface{}{}})
+	}))
+	defer srv.Close()
+
+	writer, err := NewHTTPWriter(testHTTPWriterConfig(srv.URL), NewMockTokenProvider("tok"), testLogger())
+	require.NoError(t, err)
+
+	event := testFinalAuditEvent(t)
+	event.IPAddress = nil
+	event.UserAgent = ""
+
+	err = writer.WriteBatch(context.Background(), []FinalAuditEvent{event})
+	require.NoError(t, err)
+
+	var raw struct {
+		Events []map[string]json.RawMessage `json:"events"`
+	}
+	require.NoError(t, json.Unmarshal(receivedBody, &raw))
+	require.Len(t, raw.Events, 1)
+
+	assert.NotContains(t, raw.Events[0], "ip_address")
+	assert.NotContains(t, raw.Events[0], "user_agent")
+}
