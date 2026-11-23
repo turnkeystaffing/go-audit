@@ -238,8 +238,8 @@ github.com/tklauser/numcpus v0.6.1 h1:ng9scYS7az0Bk4OZLvrNXNSAO2Pxr1XXRAPyjhIx+F
 github.com/tklauser/numcpus v0.6.1/go.mod h1:1XfjsgE2zo8GVw7POkMbHENHzVg3GzmoZ9fESEdAacY=
 github.com/turnkeystaffing/go-authclient v0.4.0 h1:NZ9BjWVoSvZ4v18FR9IZgFvNcFlTqgLVhwd4PYeNPbY=
 github.com/turnkeystaffing/go-authclient v0.4.0/go.mod h1:DgeAKToUObrMRURWG5Ui5p1s13rXIaxk9fq2mErdhUc=
-github.com/turnkeystaffing/go-opentelemetry v0.6.0 h1:/7gbhG4rCZ0mRH2XdaFNVevAYCy7oD1g6TAMMamH2qc=
-github.com/turnkeystaffing/go-opentelemetry v0.6.0/go.mod h1:9SEtLBi8OVP36SHOdU4DikUggid0GunVb5Dtw33vfao=
+github.com/turnkeystaffing/go-opentelemetry v0.7.3 h1:bL4PPYlEXoE4k11chPq/q975PvvpeC0a3TR0NP489YI=
+github.com/turnkeystaffing/go-opentelemetry v0.7.3/go.mod h1:9SEtLBi8OVP36SHOdU4DikUggid0GunVb5Dtw33vfao=
 github.com/turnkeystaffing/go-redis v0.2.0 h1:U/vW8SabPsNDXEhlXn5zfwE4P2ISmyMoFg90iSQz2+8=
 github.com/turnkeystaffing/go-redis v0.2.0/go.mod h1:AyhicMYYRRWtZ/xtsV7lHwUL+dC8hsKg5M1xDD9rwz0=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=

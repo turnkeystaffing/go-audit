@@ -10,7 +10,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.40.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.40.0
 	github.com/turnkeystaffing/go-authclient v0.4.0
-	github.com/turnkeystaffing/go-opentelemetry v0.6.0
+	github.com/turnkeystaffing/go-opentelemetry v0.7.3
 	github.com/turnkeystaffing/go-redis v0.2.0
 )
 
